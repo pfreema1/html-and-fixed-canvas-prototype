@@ -6,15 +6,9 @@ import fullScreenTriFrag from '../../shaders/fullScreenTri.frag';
 import fullScreenTriVert from '../../shaders/fullScreenTri.vert';
 import OrbitControls from 'three-orbitcontrols';
 import TweenMax from 'TweenMax';
-
-function remap(t, old_min, old_max, new_min, new_max) {
-  let old_range = old_max - old_min;
-  let normalizedT = t - old_min;
-  let normalizedVal = normalizedT / old_range;
-  let new_range = new_max - new_min;
-  let newVal = normalizedVal * new_range + new_min;
-  return newVal;
-}
+import ScrollMagic from 'ScrollMagic';
+import 'debug.addIndicators';
+import { MeshDistanceMaterial } from 'three';
 
 export default class WebGLView {
   constructor(app) {
@@ -29,11 +23,73 @@ export default class WebGLView {
   async init() {
     this.initThree();
     this.initBgScene();
-    this.initObject();
+    // this.initObject();
     this.initLights();
     this.initTweakPane();
-    await this.loadTextMesh();
+    await this.loadTetra();
     this.initRenderTri();
+    this.setupScrollMagic();
+  }
+
+  setupTetraAnimation() {
+    this.tl = new TimelineMax({ paused: true });
+
+    let inTween = TweenMax.fromTo(
+      this.tetra.position,
+      1.0,
+      {
+        y: 0,
+        x: this.vpWorldPos.width
+      },
+      {
+        y: 0,
+        x: 0
+      }
+    );
+
+    let outTween = TweenMax.fromTo(
+      this.tetra.position,
+      1.0,
+      {
+        y: 0,
+        x: 0
+      },
+      {
+        y: 0,
+        x: this.vpWorldPos.width
+      }
+    );
+
+    this.tl.add(inTween, 0.0);
+    this.tl.add(outTween, 1.0);
+  }
+
+  setupScrollMagic() {
+    this.setupTetraAnimation();
+
+    this.controller = new ScrollMagic.Controller();
+
+    this.block4Scene = new ScrollMagic.Scene({
+      triggerElement: '#block4',
+      triggerHook: 1,
+      duration: 800
+    }).addIndicators();
+
+    this.block4Scene.on('enter', () => {
+      //   debugger;
+      //   this.tetra.material.opacity = 1;
+    });
+
+    this.block4Scene.on('end', () => {
+      //   this.tetra.material.opacity = 0;
+    });
+
+    this.block4Scene.on('progress', e => {
+      //   console.log('progresssss:  ', e.progress);
+      this.tl.progress(e.progress);
+    });
+
+    this.controller.addScene(this.block4Scene);
   }
 
   initTweakPane() {
@@ -58,19 +114,42 @@ export default class WebGLView {
     this.clock = new THREE.Clock();
   }
 
-  loadTextMesh() {
+  getWorldPosOfViewPort(distance, camera) {
+    const vFOV = THREE.Math.degToRad(camera.fov);
+    const height = 2 * Math.tan(vFOV / 2) * distance;
+    const width = height * camera.aspect;
+    return { width, height };
+  }
+
+  loadTetra() {
     return new Promise((res, rej) => {
-      let loader = new GLTFLoader();
-
-      loader.load('./bbali.glb', object => {
-        object;
-        this.textMesh = object.scene.children[0];
-        console.log(this.textMesh);
-        // this.textMesh.add(new THREE.AxesHelper());
-        this.bgScene.add(this.textMesh);
-
-        res();
+      let geo = new THREE.TetrahedronGeometry(0.5, 0);
+      let mat = new THREE.MeshStandardMaterial({
+        transparent: true
       });
+      this.tetra = new THREE.Mesh(geo, mat);
+      //   this.tetra.material.opacity = 0;
+      console.log('tetra:  ', this.tetra);
+
+      this.bgScene.add(this.tetra);
+
+      this.vpWorldPos = this.getWorldPosOfViewPort(5, this.bgCamera);
+      this.tetra.position.set(
+        -this.vpWorldPos.width + 1,
+        -this.vpWorldPos.height + 1,
+        -5
+      );
+
+      //   debugger;
+
+      //   let left = 0.8;
+      //   let top = 0.8;
+      //   let depth = -1.0;
+      //   this.tetra.position
+      //     .set(-1 + 2 * left, 1 - 2 * top, depth)
+      //     .unproject(this.bgCamera);
+
+      res();
     });
   }
 
@@ -183,6 +262,7 @@ export default class WebGLView {
 
   updateTetra() {
     this.tetra.rotation.y += this.PARAMS.rotSpeed;
+    this.tetra.rotation.z += 0.03;
   }
 
   updateTextMesh() {

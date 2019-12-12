@@ -17,7 +17,15 @@ module.exports = {
   },
   resolve: {
     alias: {
-      'TweenMax': path.resolve(__root, './src/scripts/vendors/gsap/TweenMax.js')
+      TweenMax: path.resolve(__root, './src/scripts/vendors/gsap/TweenMax.js'),
+      ScrollMagic: path.resolve(
+        __root,
+        './node_modules/scrollmagic/scrollmagic/uncompressed/ScrollMagic.js'
+      ),
+      'debug.addIndicators': path.resolve(
+        __root,
+        './node_modules/scrollmagic/scrollmagic/uncompressed/plugins/debug.addIndicators.js'
+      )
     }
   },
   module: {
