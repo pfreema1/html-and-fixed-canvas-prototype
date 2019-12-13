@@ -38,11 +38,9 @@ export default class WebGLView {
       this.tetra.position,
       1.0,
       {
-        y: 0,
-        x: this.vpWorldPos.width
+        x: this.vpWorldPos.x.max
       },
       {
-        y: 0,
         x: 0
       }
     );
@@ -51,12 +49,10 @@ export default class WebGLView {
       this.tetra.position,
       1.0,
       {
-        y: 0,
         x: 0
       },
       {
-        y: 0,
-        x: this.vpWorldPos.width
+        x: this.vpWorldPos.x.max
       }
     );
 
@@ -69,27 +65,53 @@ export default class WebGLView {
 
     this.controller = new ScrollMagic.Controller();
 
+    this.controller.addScene(this.returnBlock4Scene());
+    this.controller.addScene(this.returnBigBlobScene());
+    console.log(this.controller);
+  }
+
+  returnBigBlobScene() {
+    this.bigBlobEl = document.getElementById('bigBlob');
+
+    this.bigBlobScene = new ScrollMagic.Scene({
+      triggerElement: '#bigBlob',
+      triggerHook: 1.0,
+      duration: this.bigBlobEl.offsetHeight
+    }).addIndicators({ name: 'big blob trigger' });
+
+    this.bigBlobScene.on('progress', e => {
+      console.log(e);
+    });
+
+    return this.bigBlobScene;
+  }
+
+  returnBlock4Scene() {
+    this.block4El = document.getElementById('block4');
+
     this.block4Scene = new ScrollMagic.Scene({
       triggerElement: '#block4',
-      triggerHook: 1,
-      duration: 800
+      triggerHook: 0.5,
+      duration: this.block4El.offsetHeight
     }).addIndicators();
 
-    this.block4Scene.on('enter', () => {
-      //   debugger;
-      //   this.tetra.material.opacity = 1;
-    });
-
-    this.block4Scene.on('end', () => {
-      //   this.tetra.material.opacity = 0;
-    });
-
     this.block4Scene.on('progress', e => {
-      //   console.log('progresssss:  ', e.progress);
       this.tl.progress(e.progress);
+
+      let rect = this.block4El.getBoundingClientRect();
+      let middleOfElPos = rect.top + this.block4El.offsetHeight * 0.5;
+      let middleOfElPercent = middleOfElPos / window.innerHeight;
+
+      this.tetra.position.y = THREE.Math.mapLinear(
+        middleOfElPercent,
+        0,
+        1,
+        this.vpWorldPos.y.max,
+        this.vpWorldPos.y.min
+      );
     });
 
-    this.controller.addScene(this.block4Scene);
+    return this.block4Scene;
   }
 
   initTweakPane() {
@@ -118,7 +140,16 @@ export default class WebGLView {
     const vFOV = THREE.Math.degToRad(camera.fov);
     const height = 2 * Math.tan(vFOV / 2) * distance;
     const width = height * camera.aspect;
-    return { width, height };
+    return {
+      x: {
+        min: -width,
+        max: width
+      },
+      y: {
+        min: -height,
+        max: height
+      }
+    };
   }
 
   loadTetra() {
@@ -134,20 +165,7 @@ export default class WebGLView {
       this.bgScene.add(this.tetra);
 
       this.vpWorldPos = this.getWorldPosOfViewPort(5, this.bgCamera);
-      this.tetra.position.set(
-        -this.vpWorldPos.width + 1,
-        -this.vpWorldPos.height + 1,
-        -5
-      );
-
-      //   debugger;
-
-      //   let left = 0.8;
-      //   let top = 0.8;
-      //   let depth = -1.0;
-      //   this.tetra.position
-      //     .set(-1 + 2 * left, 1 - 2 * top, depth)
-      //     .unproject(this.bgCamera);
+      this.tetra.position.set(0, 0, -5);
 
       res();
     });

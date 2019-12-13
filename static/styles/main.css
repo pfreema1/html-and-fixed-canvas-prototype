@@ -8,6 +8,12 @@ div {
   outline: 1px solid red;
 }
 
+#block1 {
+  div {
+    width: 100%;
+  }
+}
+
 #fixedCanvas {
   position: fixed;
   top: 0;
@@ -16,6 +22,11 @@ div {
   left: 0;
 
   z-index: -1;
+}
+
+#block4 {
+  padding-top: 120px;
+  padding-bottom: 120px;
 }
 
 .block-wrapper {
@@ -48,4 +59,19 @@ div {
 
 .switch {
   order: 3;
+}
+
+.big-blob-wrapper {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  height: 100vh;
+}
+
+.blob-content {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
 }
