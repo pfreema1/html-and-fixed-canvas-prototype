@@ -9,6 +9,7 @@ import TweenMax from 'TweenMax';
 import ScrollMagic from 'ScrollMagic';
 import 'debug.addIndicators';
 import { MeshDistanceMaterial } from 'three';
+import BlobTile from '../BlobTile';
 
 export default class WebGLView {
   constructor(app) {
@@ -29,6 +30,30 @@ export default class WebGLView {
     await this.loadTetra();
     this.initRenderTri();
     this.setupScrollMagic();
+
+    this.setupScrollListener();
+    this.initBlobTiles();
+  }
+
+  setupScrollListener() {
+    document.addEventListener('scroll', this.onScroll.bind(this));
+  }
+
+  onScroll(e) {
+    let scrollTop = document.documentElement.scrollTop;
+    let limit = document.documentElement.scrollHeight - window.innerHeight;
+
+    if (this.tiles) {
+      this.tiles.forEach(tile => {
+        tile.onScroll(scrollTop, limit);
+      });
+    }
+  }
+
+  initBlobTiles() {
+    this.tileEls = document.querySelectorAll('.blob-tile');
+
+    this.tiles = Array.from(this.tileEls).map(($el, i) => new BlobTile($el));
   }
 
   setupTetraAnimation() {
@@ -79,9 +104,7 @@ export default class WebGLView {
       duration: this.bigBlobEl.offsetHeight
     }).addIndicators({ name: 'big blob trigger' });
 
-    this.bigBlobScene.on('progress', e => {
-      console.log(e);
-    });
+    this.bigBlobScene.on('progress', e => {});
 
     return this.bigBlobScene;
   }
@@ -304,6 +327,12 @@ export default class WebGLView {
 
     if (this.textMesh) {
       this.updateTextMesh();
+    }
+
+    if (this.tiles) {
+      this.tiles.forEach(tile => {
+        tile.update();
+      });
     }
 
     if (this.trackball) this.trackball.update();
