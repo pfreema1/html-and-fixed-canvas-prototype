@@ -19,7 +19,9 @@ export default class BlobTile {
     const { width, height, left, top } = this.el.getBoundingClientRect();
   }
 
-  move() {}
+  move() {
+    this.getBounds();
+  }
 
   onScroll(scrollTop, limit) {
     this.scroll = scrollTop / limit;
