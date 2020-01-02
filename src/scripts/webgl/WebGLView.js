@@ -32,7 +32,21 @@ export default class WebGLView {
     this.setupScrollMagic();
 
     this.setupScrollListener();
+    this.setupMouseMove();
     this.initBlobTiles();
+  }
+
+  setupMouseMove() {
+    this.mouse = new THREE.Vector2();
+    this.width = window.innerWidth;
+    this.height = window.innerHeight;
+
+    document.addEventListener('mousemove', ({ clientX, clientY }) => {
+      this.mouse.x = clientX / this.width; // * 2 - 1;
+      this.mouse.y = 1.0 - clientY / this.height; // * 2 + 1;
+
+      //   console.log(this.mouse);
+    });
   }
 
   setupScrollListener() {
@@ -53,7 +67,9 @@ export default class WebGLView {
   initBlobTiles() {
     this.tileEls = document.querySelectorAll('.blob-tile');
 
-    this.tiles = Array.from(this.tileEls).map(($el, i) => new BlobTile($el));
+    this.tiles = Array.from(this.tileEls).map(
+      ($el, i) => new BlobTile($el, this.triMaterial.uniforms, i)
+    );
   }
 
   setupTetraAnimation() {
@@ -234,6 +250,40 @@ export default class WebGLView {
         },
         uResolution: { value: resolution },
         uTime: {
+          value: 0.0
+        },
+        tile0D: {
+          // x = normalized left
+          // y = normalized top
+          // z = normalized width
+          // w = normalized height
+          value: new THREE.Vector4(0, 0, 0, 0)
+        },
+        tile1D: {
+          value: new THREE.Vector4(0, 0, 0, 0)
+        },
+        tile2D: {
+          value: new THREE.Vector4(0, 0, 0, 0)
+        },
+        uMouse: {
+          value: new THREE.Vector2()
+        },
+        tile0Hover: {
+          value: new THREE.Vector2()
+        },
+        tile1Hover: {
+          value: new THREE.Vector2()
+        },
+        tile2Hover: {
+          value: new THREE.Vector2()
+        },
+        isTile0Hover: {
+          value: 0.0
+        },
+        isTile1Hover: {
+          value: 0.0
+        },
+        isTile2Hover: {
           value: 0.0
         }
       }
