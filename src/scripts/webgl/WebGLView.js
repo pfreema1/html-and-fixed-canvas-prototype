@@ -68,7 +68,14 @@ export default class WebGLView {
     this.tileEls = document.querySelectorAll('.blob-tile');
 
     this.tiles = Array.from(this.tileEls).map(
-      ($el, i) => new BlobTile($el, this.triMaterial.uniforms, i)
+      ($el, i) =>
+        new BlobTile(
+          $el,
+          this.triMaterial.uniforms,
+          i,
+          this.bgScene,
+          this.bgCamera
+        )
     );
   }
 
@@ -301,12 +308,14 @@ export default class WebGLView {
       window.innerWidth,
       window.innerHeight
     );
+
     this.bgCamera = new THREE.PerspectiveCamera(
       50,
       window.innerWidth / window.innerHeight,
       0.01,
       100
     );
+
     // this.controls = new OrbitControls(this.bgCamera, this.renderer.domElement);
 
     this.bgCamera.position.z = 3;

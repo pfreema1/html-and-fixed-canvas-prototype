@@ -1,9 +1,10 @@
 import * as THREE from 'three';
 import TweenMax from 'TweenMax';
 import { Vector2 } from 'three';
+import fitPlaneToScreen from '../scripts/utils/fitPlaneToScreen';
 
 export default class BlobTile {
-  constructor(el, renderTriUniforms, index) {
+  constructor(el, renderTriUniforms, index, bgScene, bgCamera) {
     this.el = el;
     this.duration = 0.8;
     this.scroll = 0;
@@ -14,8 +15,44 @@ export default class BlobTile {
 
     this.renderTriUniforms = renderTriUniforms;
     this.index = index;
+    this.bgScene = bgScene;
+    this.bgCamera = bgCamera;
+
+    this.setupScreenBounds();
+
+    this.createTileMesh();
 
     this.setupHoverListener();
+  }
+
+  setupScreenBounds() {
+    this.pD = fitPlaneToScreen(
+      this.bgCamera,
+      -6,
+      this.windowWidth,
+      this.windowHeight
+    );
+
+    this.screenBounds = {
+      x: {
+        min: (this.pD.height / 2) * -1,
+        max: this.pD.height / 2
+      },
+      y: {
+        min: (this.pD.width / 2) * -1,
+        max: this.pD.width / 2
+      }
+    };
+  }
+
+  createTileMesh() {
+    this.geometry = new THREE.BoxBufferGeometry(1, 1, 1);
+    this.material = new THREE.MeshBasicMaterial({ color: 0x0fff00 });
+    this.tile = new THREE.Mesh(this.geometry, this.material);
+
+    this.tile.position.z = -6;
+
+    this.bgScene.add(this.tile);
   }
 
   setupHoverListener() {
@@ -39,10 +76,10 @@ export default class BlobTile {
   }
 
   initTile() {
-    this.getBounds();
+    this.getElBounds();
   }
 
-  getBounds() {
+  getElBounds() {
     const { width, height, left, top } = this.el.getBoundingClientRect();
 
     this.width = width;
@@ -50,33 +87,50 @@ export default class BlobTile {
     this.left = left;
     this.top = top;
 
-    let normalizedLeft = left / this.windowWidth;
-    let normalizedTop = 1.0 - top / this.windowHeight;
-    let normalizedWidth = width / this.windowWidth;
-    let normalizedHeight = height / this.windowHeight;
+    this.normalizedLeft = left / this.windowWidth;
+    this.normalizedTop = 1.0 - top / this.windowHeight;
+    this.normalizedWidth = width / this.windowWidth;
+    this.normalizedHeight = height / this.windowHeight;
+
+    // console.log(this.normalizedTop);
 
     // update uniforms
     this.renderTriUniforms[`tile${this.index}D`].value.set(
-      normalizedLeft,
-      normalizedTop,
-      normalizedWidth,
-      normalizedHeight
+      this.normalizedLeft,
+      this.normalizedTop,
+      this.normalizedWidth,
+      this.normalizedHeight
     );
   }
 
-  move() {
-    this.getBounds();
+  onScroll(scrollTop, limit) {
+    // normalized scroll position of entire page
+    this.scroll = scrollTop / limit;
+
+    this.updateTilePosition();
   }
 
-  onScroll(scrollTop, limit) {
-    this.scroll = scrollTop / limit;
-    // console.log(this.scroll);
+  updateTilePosition() {
+    // console.log(this.normalizedTop);
+    if (this.normalizedTop > 0 && this.normalizedTop < 1) {
+      this.tile.position.y = THREE.Math.mapLinear(
+        this.normalizedTop,
+        0,
+        1,
+        this.screenBounds.y.min,
+        this.screenBounds.y.max
+      );
+    } else {
+      // move tile mesh off screen
+      this.tile.position.y = this.screenBounds.y.min - 5;
+    }
+    console.log(this.tile.position.y);
   }
 
   update() {
     this.delta = Math.abs((this.scroll - this.prevScroll) * 2000);
 
-    this.move();
+    this.getElBounds();
 
     this.prevScroll = this.scroll;
 
