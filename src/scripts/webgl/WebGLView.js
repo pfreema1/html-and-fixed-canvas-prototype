@@ -8,7 +8,6 @@ import OrbitControls from 'three-orbitcontrols';
 import TweenMax from 'TweenMax';
 import ScrollMagic from 'ScrollMagic';
 import 'debug.addIndicators';
-import { MeshDistanceMaterial } from 'three';
 import BlobTile from '../BlobTile';
 
 export default class WebGLView {
@@ -24,12 +23,9 @@ export default class WebGLView {
   async init() {
     this.initThree();
     this.initBgScene();
-    // this.initObject();
     this.initLights();
     this.initTweakPane();
-    await this.loadTetra();
     this.initRenderTri();
-    this.setupScrollMagic();
 
     this.setupScrollListener();
     this.setupMouseMove();
@@ -106,16 +102,6 @@ export default class WebGLView {
 
     this.tl.add(inTween, 0.0);
     this.tl.add(outTween, 1.0);
-  }
-
-  setupScrollMagic() {
-    this.setupTetraAnimation();
-
-    this.controller = new ScrollMagic.Controller();
-
-    this.controller.addScene(this.returnBlock4Scene());
-    this.controller.addScene(this.returnBigBlobScene());
-    console.log(this.controller);
   }
 
   returnBigBlobScene() {
@@ -196,25 +182,6 @@ export default class WebGLView {
         max: height
       }
     };
-  }
-
-  loadTetra() {
-    return new Promise((res, rej) => {
-      let geo = new THREE.TetrahedronGeometry(0.5, 0);
-      let mat = new THREE.MeshStandardMaterial({
-        transparent: true
-      });
-      this.tetra = new THREE.Mesh(geo, mat);
-      //   this.tetra.material.opacity = 0;
-      console.log('tetra:  ', this.tetra);
-
-      this.bgScene.add(this.tetra);
-
-      this.vpWorldPos = this.getWorldPosOfViewPort(5, this.bgCamera);
-      this.tetra.position.set(0, 0, -5);
-
-      res();
-    });
   }
 
   returnRenderTriGeometry() {
@@ -343,20 +310,6 @@ export default class WebGLView {
     this.pointLight = new THREE.PointLight(0xff0000, 1, 100);
     this.pointLight.position.set(0, 0, 50);
     this.bgScene.add(this.pointLight);
-  }
-
-  initObject() {
-    let geo = new THREE.TetrahedronBufferGeometry(10, 0);
-    let mat = new THREE.MeshPhysicalMaterial({
-      roughness: 0.5,
-      metalness: 0.3,
-      reflectivity: 1,
-      clearcoat: 1
-    });
-    this.tetra = new THREE.Mesh(geo, mat);
-    console.log('tetra:  ', this.tetra);
-
-    // this.bgScene.add(this.tetra);
   }
 
   resize() {

@@ -54,11 +54,26 @@ export default class BlobTile {
   }
 
   onMouseEnter() {
-    console.log('mouse entered!');
+    this.isHovering = true;
+
+    if (!this.tile) return;
+
+    TweenMax.to(this.uniforms.u_progressHover, this.duration, {
+      value: 1,
+      ease: Power2.easeInOut
+    });
   }
 
   onMouseLeave() {
-    console.log('mouse leave!');
+    if (!this.tile) return;
+
+    TweenMax.to(this.uniforms.u_progressHover, this.duration, {
+      value: 0,
+      ease: Power2.easeInOut,
+      onComplete: () => {
+        this.isHovering = false;
+      }
+    });
   }
 
   initTile() {
@@ -91,11 +106,6 @@ export default class BlobTile {
     this.tile.scale.set(this.sizes.x, this.sizes.y, 1);
 
     console.log('this.tile:  ', this.tile);
-    TweenMax.to(this.tile.rotation, 2.0, {
-      repeat: -1,
-      yoyo: true,
-      x: Math.PI * 2.0
-    });
 
     this.bgScene.add(this.tile);
   }
@@ -125,12 +135,6 @@ export default class BlobTile {
   onScroll(scrollTop, limit) {
     // normalized scroll position of entire page
     this.scroll = scrollTop / limit;
-
-    // console.log('offset:  ', scrollTop);
-    // console.log('limit:  ', limit);
-    // console.log(this.scroll);
-
-    // this.updateTilePosition();
   }
 
   move() {
@@ -156,6 +160,7 @@ export default class BlobTile {
   }
 
   update(time) {
+    // delta makes the geometry scale according to mouse scroll
     this.delta = Math.abs((this.scroll - this.prevScroll) * 2000);
 
     if (!this.tile) return;
@@ -167,6 +172,7 @@ export default class BlobTile {
     this.prevScroll = this.scroll;
 
     if (!this.isHovering) return;
-    // this.uniforms.u_time.value += this.clock.getDelta();
+
+    console.log(this.mouse);
   }
 }
