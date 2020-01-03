@@ -309,19 +309,34 @@ export default class WebGLView {
       window.innerHeight
     );
 
-    this.bgCamera = new THREE.PerspectiveCamera(
-      50,
-      window.innerWidth / window.innerHeight,
-      0.01,
-      100
-    );
+    // this.bgCamera = new THREE.PerspectiveCamera(
+    //   50,
+    //   window.innerWidth / window.innerHeight,
+    //   0.01,
+    //   100
+    // );
+    this.initBgSceneCamera();
 
     // this.controls = new OrbitControls(this.bgCamera, this.renderer.domElement);
 
-    this.bgCamera.position.z = 3;
+    // this.bgCamera.position.z = 3;
     // this.controls.update();
 
     this.bgScene = new THREE.Scene();
+  }
+
+  initBgSceneCamera() {
+    // https://tympanus.net/codrops/2019/10/23/making-gooey-image-hover-effects-with-three-js/
+    const perspective = 800;
+    const fov =
+      (180 * (2 * Math.atan(window.innerHeight / 2 / perspective))) / Math.PI;
+    this.bgCamera = new THREE.PerspectiveCamera(
+      fov,
+      window.innerWidth / window.innerHeight,
+      1,
+      10000
+    );
+    this.bgCamera.position.set(0, 0, perspective);
   }
 
   initLights() {
@@ -390,7 +405,7 @@ export default class WebGLView {
 
     if (this.tiles) {
       this.tiles.forEach(tile => {
-        tile.update();
+        tile.update(time);
       });
     }
 

@@ -2,6 +2,9 @@ import * as THREE from 'three';
 import TweenMax from 'TweenMax';
 import { Vector2 } from 'three';
 import fitPlaneToScreen from '../scripts/utils/fitPlaneToScreen';
+import tileFrag from '../shaders/tile.frag';
+import tileVert from '../shaders/tile.vert';
+import glslify from 'glslify';
 
 export default class BlobTile {
   constructor(el, renderTriUniforms, index, bgScene, bgCamera) {
@@ -9,6 +12,7 @@ export default class BlobTile {
     this.duration = 0.8;
     this.scroll = 0;
     this.prevScroll = 0;
+    this.delta = 0;
 
     this.windowWidth = window.innerWidth;
     this.windowHeight = window.innerHeight;
@@ -17,124 +21,152 @@ export default class BlobTile {
     this.index = index;
     this.bgScene = bgScene;
     this.bgCamera = bgCamera;
+    this.mouse = new THREE.Vector2(0, 0);
+    this.sizes = new THREE.Vector2(0, 0);
+    this.offset = new THREE.Vector2(0, 0);
 
-    this.setupScreenBounds();
+    // this.setupScreenBounds();
 
-    this.createTileMesh();
+    this.initTile();
 
-    this.setupHoverListener();
+    this.bindEvents();
   }
 
-  setupScreenBounds() {
-    this.pD = fitPlaneToScreen(
-      this.bgCamera,
-      -6,
-      this.windowWidth,
-      this.windowHeight
-    );
+  bindEvents() {
+    window.addEventListener('mousemove', e => {
+      this.onMouseMove(e);
+    });
 
-    this.screenBounds = {
-      x: {
-        min: (this.pD.height / 2) * -1,
-        max: this.pD.height / 2
+    this.el.addEventListener('mouseenter', () => {
+      this.onMouseEnter();
+    });
+
+    this.el.addEventListener('mouseleave', () => {
+      this.onMouseLeave();
+    });
+  }
+
+  onMouseMove(e) {
+    TweenMax.to(this.mouse, 0.5, {
+      x: e.clientX,
+      y: e.clientY
+    });
+  }
+
+  onMouseEnter() {
+    console.log('mouse entered!');
+  }
+
+  onMouseLeave() {
+    console.log('mouse leave!');
+  }
+
+  initTile() {
+    this.uniforms = {
+      u_time: { value: 0.0 },
+      u_res: {
+        value: new THREE.Vector2(window.innerWidth, window.innerHeight)
       },
-      y: {
-        min: (this.pD.width / 2) * -1,
-        max: this.pD.width / 2
-      }
+      u_mouse: { value: this.mouse },
+      u_progressHover: { value: 0 }
     };
-  }
 
-  createTileMesh() {
-    this.geometry = new THREE.BoxBufferGeometry(1, 1, 1);
-    this.material = new THREE.MeshBasicMaterial({ color: 0x0fff00 });
-    this.tile = new THREE.Mesh(this.geometry, this.material);
+    this.geo = new THREE.PlaneBufferGeometry(1, 1, 1, 1);
+    this.mat = new THREE.ShaderMaterial({
+      uniforms: this.uniforms,
+      vertexShader: glslify(tileVert),
+      fragmentShader: glslify(tileFrag),
+      transparent: true,
+      defines: {
+        PI: Math.PI,
+        PR: window.devicePixelRatio.toFixed(1)
+      }
+    });
+    // this.mat = new THREE.MeshBasicMaterial({ color: 0xff0000 });
+    this.tile = new THREE.Mesh(this.geo, this.mat);
 
-    this.tile.position.z = -6;
+    this.tile.position.x = this.offset.x;
+    this.tile.position.y = this.offset.y;
+
+    this.tile.scale.set(this.sizes.x, this.sizes.y, 1);
+
+    console.log('this.tile:  ', this.tile);
+    TweenMax.to(this.tile.rotation, 2.0, {
+      repeat: -1,
+      yoyo: true,
+      x: Math.PI * 2.0
+    });
 
     this.bgScene.add(this.tile);
   }
 
-  setupHoverListener() {
-    this.normalizedHover = new Vector2();
-
-    this.el.addEventListener('mousemove', e => {
-      this.normalizedHover.x = (e.x - this.left) / this.width;
-      this.normalizedHover.y = 1.0 - (e.y - this.top) / this.height;
-
-      this.renderTriUniforms[`tile${this.index}Hover`].value.set(
-        this.normalizedHover.x,
-        this.normalizedHover.y
-      );
-
-      this.renderTriUniforms[`isTile${this.index}Hover`].value = 1.0;
-    });
-
-    this.el.addEventListener('mouseout', () => {
-      this.renderTriUniforms[`isTile${this.index}Hover`].value = 0.0;
-    });
-  }
-
-  initTile() {
-    this.getElBounds();
-  }
-
-  getElBounds() {
+  getBounds() {
     const { width, height, left, top } = this.el.getBoundingClientRect();
 
-    this.width = width;
-    this.height = height;
-    this.left = left;
-    this.top = top;
+    if (!this.sizes.equals(new THREE.Vector2(width, height))) {
+      this.sizes.set(width, height);
+    }
 
-    this.normalizedLeft = left / this.windowWidth;
-    this.normalizedTop = 1.0 - top / this.windowHeight;
-    this.normalizedWidth = width / this.windowWidth;
-    this.normalizedHeight = height / this.windowHeight;
-
-    // console.log(this.normalizedTop);
-
-    // update uniforms
-    this.renderTriUniforms[`tile${this.index}D`].value.set(
-      this.normalizedLeft,
-      this.normalizedTop,
-      this.normalizedWidth,
-      this.normalizedHeight
-    );
+    if (
+      !this.offset.equals(
+        new THREE.Vector2(
+          left - window.innerWidth / 2 + width / 2,
+          -top + window.innerHeight / 2 - height / 2
+        )
+      )
+    ) {
+      this.offset.set(
+        left - window.innerWidth / 2 + width / 2,
+        -top + window.innerHeight / 2 - height / 2
+      );
+    }
   }
 
   onScroll(scrollTop, limit) {
     // normalized scroll position of entire page
     this.scroll = scrollTop / limit;
 
-    this.updateTilePosition();
+    // console.log('offset:  ', scrollTop);
+    // console.log('limit:  ', limit);
+    // console.log(this.scroll);
+
+    // this.updateTilePosition();
   }
 
-  updateTilePosition() {
-    // console.log(this.normalizedTop);
-    if (this.normalizedTop > 0 && this.normalizedTop < 1) {
-      this.tile.position.y = THREE.Math.mapLinear(
-        this.normalizedTop,
-        0,
-        1,
-        this.screenBounds.y.min,
-        this.screenBounds.y.max
-      );
-    } else {
-      // move tile mesh off screen
-      this.tile.position.y = this.screenBounds.y.min - 5;
-    }
-    console.log(this.tile.position.y);
+  move() {
+    if (!this.tile) return;
+
+    this.getBounds();
+
+    TweenMax.set(this.tile.position, {
+      x: this.offset.x,
+      y: this.offset.y
+    });
+
+    // TweenMax.set(this.tile.position, {
+    //   x: 0,
+    //   y: 0
+    // });
+
+    TweenMax.to(this.tile.scale, 0.3, {
+      x: this.sizes.x - this.delta,
+      y: this.sizes.y - this.delta,
+      z: 1
+    });
   }
 
-  update() {
+  update(time) {
     this.delta = Math.abs((this.scroll - this.prevScroll) * 2000);
 
-    this.getElBounds();
+    if (!this.tile) return;
+
+    this.uniforms.u_time.value = time;
+
+    this.move();
 
     this.prevScroll = this.scroll;
 
     if (!this.isHovering) return;
-    this.uniforms.u_time.value += this.clock.getDelta();
+    // this.uniforms.u_time.value += this.clock.getDelta();
   }
 }
