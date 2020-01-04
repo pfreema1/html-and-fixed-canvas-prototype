@@ -33,7 +33,7 @@ void main() {
 
   float finalMask = smoothstep(0.0, 0.1, sqr - c);
 
-  float color = c;
+  vec3 color = vec3(0.0, 1.0, 0.3);
 
-  gl_FragColor = vec4(vec3(color), finalMask);
+  gl_FragColor = vec4(color, finalMask);
 }
