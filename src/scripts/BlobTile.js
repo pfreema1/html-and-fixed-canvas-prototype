@@ -9,7 +9,7 @@ import glslify from 'glslify';
 export default class BlobTile {
   constructor(el, renderTriUniforms, index, bgScene, bgCamera) {
     this.el = el;
-    this.edgeBevelDuration = 0.8;
+    this.edgeBevelDuration = 0.5;
     this.colorProgressDuration = 0.3;
     this.scroll = 0;
     this.prevScroll = 0;

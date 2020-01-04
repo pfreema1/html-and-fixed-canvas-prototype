@@ -34,12 +34,18 @@ void main() {
   float sqr = 100. * ((smoothstep(0.0, grd, uv.x) - smoothstep(1.0 - grd, 1.0, uv.x)) * (smoothstep(0.0, grd, uv.y) - smoothstep(1.0 - grd, 1.0, uv.y))) - 10.;
 
   vec2 cpos = st + mouse;
+  float c = circle(cpos, .04 * edgeBevelProgress, 2.0) * 50.; 
 
-  float c = circle(cpos, .04 * edgeBevelProgress, 2.0) * 50.;  // default: 50.0
+  vec2 textureCirclePos = uv - vec2(1.0, -0.2);
+  float textureCircle = circle(textureCirclePos, 1.5, 0.01);
 
   float finalMask = smoothstep(0.0, 0.1, sqr - c);
 
+  // mix the bgColor based on colorProgress
   vec3 bgColor = mix(unhoveredColor, hoveredColor, colorProgress);
+
+  // mix in the textureCircle color
+  bgColor = mix(bgColor, vec3(texture1Color), textureCircle);
 
   gl_FragColor = vec4(bgColor, finalMask);
 }
