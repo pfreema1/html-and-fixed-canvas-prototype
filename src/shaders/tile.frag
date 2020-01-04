@@ -5,6 +5,7 @@ uniform vec2 u_res;
 uniform vec2 u_mouse;
 uniform float u_edgeBevelProgress;
 uniform float u_colorProgress;
+uniform float u_circlePatternProgress;
 uniform sampler2D u_texture1;
 
 varying vec2 v_uv;
@@ -20,6 +21,7 @@ void main() {
   float time = u_time * 0.05;
   float edgeBevelProgress = u_edgeBevelProgress;  
   float colorProgress = u_colorProgress;
+  float circlePatternProgress = u_circlePatternProgress;
   vec4 texture1Color = texture2D(u_texture1, uv);
   vec3 unhoveredColor = vec3(0.97,0.97,0.98);
   vec3 hoveredColor = vec3(0.24,0.33,0.49);
@@ -33,11 +35,13 @@ void main() {
   float grd = 0.1 * edgeBevelProgress;  // grd is the modifier to give the beveled edges
   float sqr = 100. * ((smoothstep(0.0, grd, uv.x) - smoothstep(1.0 - grd, 1.0, uv.x)) * (smoothstep(0.0, grd, uv.y) - smoothstep(1.0 - grd, 1.0, uv.y))) - 10.;
 
+  // mouse circle
   vec2 cpos = st + mouse;
   float c = circle(cpos, .04 * edgeBevelProgress, 2.0) * 50.; 
 
+  // pattern circle
   vec2 textureCirclePos = uv - vec2(1.0, -0.2);
-  float textureCircle = circle(textureCirclePos, 1.5, 0.01);
+  float textureCircle = circle(textureCirclePos, 1.5 * circlePatternProgress, 0.01);
 
   float finalMask = smoothstep(0.0, 0.1, sqr - c);
 

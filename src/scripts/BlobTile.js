@@ -9,8 +9,6 @@ import glslify from 'glslify';
 export default class BlobTile {
   constructor(el, renderTriUniforms, index, bgScene, bgCamera) {
     this.el = el;
-    this.edgeBevelDuration = 0.5;
-    this.colorProgressDuration = 0.3;
     this.scroll = 0;
     this.prevScroll = 0;
     this.delta = 0;
@@ -25,6 +23,11 @@ export default class BlobTile {
     this.mouse = new THREE.Vector2(0, 0);
     this.sizes = new THREE.Vector2(0, 0);
     this.offset = new THREE.Vector2(0, 0);
+
+    // animation timings
+    this.edgeBevelDuration = 0.5;
+    this.colorProgressDuration = 0.3;
+    this.circlePatternDuration = 0.3;
 
     this.loadTextures(['./grid.png']).then(() => {
       this.initTile();
@@ -93,6 +96,13 @@ export default class BlobTile {
       value: 1,
       ease: Power2.easeOut
     });
+
+    // circle grow tween
+    TweenMax.to(this.uniforms.u_circlePatternProgress, this.circlePatternDuration, {
+      value: 1,
+      delay: 0.2,
+      ease: Power2.easeOut
+    });
   }
 
   onMouseLeave() {
@@ -112,6 +122,13 @@ export default class BlobTile {
       value: 0,
       ease: Power2.easeOut
     });
+
+    // circle shrink tween 
+    TweenMax.killTweensOf(this.uniforms.u_circlePatternProgress);
+    TweenMax.to(this.uniforms.u_circlePatternProgress, this.circlePatternDuration, {
+      value: 0,
+      ease: Power2.easeOut
+    });
   }
 
   initTile() {
@@ -126,7 +143,8 @@ export default class BlobTile {
       u_mouse: { value: this.mouse },
       u_edgeBevelProgress: { value: 0 },
       u_texture1: { value: this.textures[0] },
-      u_colorProgress: { value: 0 }
+      u_colorProgress: { value: 0 },
+      u_circlePatternProgress: { value: 0 }
     };
 
     this.geo = new THREE.PlaneBufferGeometry(1, 1, 1, 1);
