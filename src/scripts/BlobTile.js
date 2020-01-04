@@ -9,7 +9,8 @@ import glslify from 'glslify';
 export default class BlobTile {
   constructor(el, renderTriUniforms, index, bgScene, bgCamera) {
     this.el = el;
-    this.duration = 0.8;
+    this.edgeBevelDuration = 0.8;
+    this.colorProgressDuration = 0.3;
     this.scroll = 0;
     this.prevScroll = 0;
     this.delta = 0;
@@ -25,11 +26,34 @@ export default class BlobTile {
     this.sizes = new THREE.Vector2(0, 0);
     this.offset = new THREE.Vector2(0, 0);
 
-    // this.setupScreenBounds();
+    this.loadTextures(['./grid.png']).then(() => {
+      this.initTile();
+    });
 
-    this.initTile();
 
     this.bindEvents();
+
+  }
+
+  loadTextures(paths) {
+    return new Promise((res, rej) => {
+      this.loader = new THREE.TextureLoader();
+      this.textures = [];
+      let loadedCount = 0;
+
+      paths.forEach(path => {
+        this.loader.load(path, texture => {
+          loadedCount++;
+          this.textures.push(texture);
+
+
+          if (loadedCount === paths.length) {
+            res();
+          }
+
+        });
+      });
+    });
   }
 
   bindEvents() {
@@ -58,32 +82,51 @@ export default class BlobTile {
 
     if (!this.tile) return;
 
-    TweenMax.to(this.uniforms.u_progressHover, this.duration, {
+    // edge bevel tween
+    TweenMax.to(this.uniforms.u_edgeBevelProgress, this.edgeBevelDuration, {
       value: 1,
       ease: Power2.easeInOut
+    });
+
+    // color change tween
+    TweenMax.to(this.uniforms.u_colorProgress, this.colorProgressDuration, {
+      value: 1,
+      ease: Power2.easeOut
     });
   }
 
   onMouseLeave() {
     if (!this.tile) return;
 
-    TweenMax.to(this.uniforms.u_progressHover, this.duration, {
+    // edge bevel tween
+    TweenMax.to(this.uniforms.u_edgeBevelProgress, this.edgeBevelDuration, {
       value: 0,
       ease: Power2.easeInOut,
       onComplete: () => {
         this.isHovering = false;
       }
     });
+
+    // color change tween
+    TweenMax.to(this.uniforms.u_colorProgress, this.colorProgressDuration, {
+      value: 0,
+      ease: Power2.easeOut
+    });
   }
 
   initTile() {
+
+    console.log(this.textures);
+
     this.uniforms = {
       u_time: { value: 0.0 },
       u_res: {
         value: new THREE.Vector2(window.innerWidth, window.innerHeight)
       },
       u_mouse: { value: this.mouse },
-      u_progressHover: { value: 0 }
+      u_edgeBevelProgress: { value: 0 },
+      u_texture1: { value: this.textures[0] },
+      u_colorProgress: { value: 0 }
     };
 
     this.geo = new THREE.PlaneBufferGeometry(1, 1, 1, 1);
@@ -173,6 +216,6 @@ export default class BlobTile {
 
     if (!this.isHovering) return;
 
-    console.log(this.mouse);
+    // console.log(this.mouse);
   }
 }
