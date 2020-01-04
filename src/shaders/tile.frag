@@ -13,7 +13,7 @@ float circle(in vec2 _st, in float _radius, in float blurriness){
 }
 
 void main() {
-  vec2 resolution = u_res * PR;  
+  vec2 resolution = u_res;  // original: u_res * PR  
   vec2 uv = v_uv;
   float time = u_time * 0.05;
   float progressHover = u_progressHover;  // tweens from 0 to 1 when mouse in and reverse when mouse out
