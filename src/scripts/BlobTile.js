@@ -1,25 +1,18 @@
 import * as THREE from 'three';
 import TweenMax from 'TweenMax';
-import { Vector2 } from 'three';
-import fitPlaneToScreen from '../scripts/utils/fitPlaneToScreen';
 import tileFrag from '../shaders/tile.frag';
 import tileVert from '../shaders/tile.vert';
 import glslify from 'glslify';
 
 export default class BlobTile {
-  constructor(el, renderTriUniforms, index, bgScene, bgCamera) {
+  constructor(el, bgScene) {
     this.el = el;
+    this.bgScene = bgScene;
+
     this.scroll = 0;
     this.prevScroll = 0;
-    this.delta = 0;
+    this.scrollDelta = 0;
 
-    this.windowWidth = window.innerWidth;
-    this.windowHeight = window.innerHeight;
-
-    this.renderTriUniforms = renderTriUniforms;
-    this.index = index;
-    this.bgScene = bgScene;
-    this.bgCamera = bgCamera;
     this.mouse = new THREE.Vector2(0, 0);
     this.sizes = new THREE.Vector2(0, 0);
     this.offset = new THREE.Vector2(0, 0);
@@ -81,8 +74,6 @@ export default class BlobTile {
   }
 
   onMouseEnter() {
-    this.isHovering = true;
-
     if (!this.tile) return;
 
     // edge bevel tween
@@ -112,9 +103,6 @@ export default class BlobTile {
     TweenMax.to(this.uniforms.u_edgeBevelProgress, this.edgeBevelDuration, {
       value: 0,
       ease: Power2.easeInOut,
-      onComplete: () => {
-        this.isHovering = false;
-      }
     });
 
     // color change tween
@@ -132,9 +120,6 @@ export default class BlobTile {
   }
 
   initTile() {
-
-    console.log(this.textures);
-
     this.uniforms = {
       u_time: { value: 0.0 },
       u_res: {
@@ -208,23 +193,19 @@ export default class BlobTile {
       y: this.offset.y
     });
 
-    // TweenMax.set(this.tile.position, {
-    //   x: 0,
-    //   y: 0
-    // });
-
     TweenMax.to(this.tile.scale, 0.3, {
-      x: this.sizes.x - this.delta,
-      y: this.sizes.y - this.delta,
+      x: this.sizes.x - this.scrollDelta,
+      y: this.sizes.y - this.scrollDelta,
       z: 1
     });
   }
 
   update(time) {
-    // delta makes the geometry scale according to mouse scroll
-    this.delta = Math.abs((this.scroll - this.prevScroll) * 2000);
-
     if (!this.tile) return;
+
+    // scrollDelta makes the geometry scale according to mouse scroll
+    this.scrollDelta = Math.abs((this.scroll - this.prevScroll) * 2000);
+
 
     this.uniforms.u_time.value = time;
 
@@ -232,8 +213,5 @@ export default class BlobTile {
 
     this.prevScroll = this.scroll;
 
-    if (!this.isHovering) return;
-
-    // console.log(this.mouse);
   }
 }

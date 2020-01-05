@@ -9,6 +9,7 @@ import TweenMax from 'TweenMax';
 import ScrollMagic from 'ScrollMagic';
 import 'debug.addIndicators';
 import BlobTile from '../BlobTile';
+import FullScreenBlob from '../FullScreenBlob';
 
 export default class WebGLView {
   constructor(app) {
@@ -30,6 +31,7 @@ export default class WebGLView {
     this.setupScrollListener();
     this.setupMouseMove();
     this.initBlobTiles();
+    this.initFullScreenBlob();
   }
 
   setupMouseMove() {
@@ -67,12 +69,15 @@ export default class WebGLView {
       ($el, i) =>
         new BlobTile(
           $el,
-          this.triMaterial.uniforms,
-          i,
-          this.bgScene,
-          this.bgCamera
+          this.bgScene
         )
     );
+  }
+
+  initFullScreenBlob() {
+    this.fullScreenBlobEl = document.querySelector('#bigBlob');
+
+    this.fullScreenBlob = new FullScreenBlob(this.fullScreenBlobEl, this.bgScene);
   }
 
   setupTetraAnimation() {
@@ -113,7 +118,7 @@ export default class WebGLView {
       duration: this.bigBlobEl.offsetHeight
     }).addIndicators({ name: 'big blob trigger' });
 
-    this.bigBlobScene.on('progress', e => {});
+    this.bigBlobScene.on('progress', e => { });
 
     return this.bigBlobScene;
   }
@@ -154,7 +159,7 @@ export default class WebGLView {
         min: 0.0,
         max: 0.5
       })
-      .on('change', value => {});
+      .on('change', value => { });
   }
 
   initThree() {
