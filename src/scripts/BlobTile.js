@@ -26,9 +26,7 @@ export default class BlobTile {
       this.initTile();
     });
 
-
     this.bindEvents();
-
   }
 
   loadTextures(paths) {
@@ -42,11 +40,9 @@ export default class BlobTile {
           loadedCount++;
           this.textures.push(texture);
 
-
           if (loadedCount === paths.length) {
             res();
           }
-
         });
       });
     });
@@ -89,11 +85,15 @@ export default class BlobTile {
     });
 
     // circle grow tween
-    TweenMax.to(this.uniforms.u_circlePatternProgress, this.circlePatternDuration, {
-      value: 1,
-      delay: 0.2,
-      ease: Power2.easeOut
-    });
+    TweenMax.to(
+      this.uniforms.u_circlePatternProgress,
+      this.circlePatternDuration,
+      {
+        value: 1,
+        delay: 0.2,
+        ease: Power2.easeOut
+      }
+    );
   }
 
   onMouseLeave() {
@@ -102,7 +102,7 @@ export default class BlobTile {
     // edge bevel tween
     TweenMax.to(this.uniforms.u_edgeBevelProgress, this.edgeBevelDuration, {
       value: 0,
-      ease: Power2.easeInOut,
+      ease: Power2.easeInOut
     });
 
     // color change tween
@@ -111,12 +111,16 @@ export default class BlobTile {
       ease: Power2.easeOut
     });
 
-    // circle shrink tween 
+    // circle shrink tween
     TweenMax.killTweensOf(this.uniforms.u_circlePatternProgress);
-    TweenMax.to(this.uniforms.u_circlePatternProgress, this.circlePatternDuration, {
-      value: 0,
-      ease: Power2.easeOut
-    });
+    TweenMax.to(
+      this.uniforms.u_circlePatternProgress,
+      this.circlePatternDuration,
+      {
+        value: 0,
+        ease: Power2.easeOut
+      }
+    );
   }
 
   initTile() {
@@ -206,12 +210,10 @@ export default class BlobTile {
     // scrollDelta makes the geometry scale according to mouse scroll
     this.scrollDelta = Math.abs((this.scroll - this.prevScroll) * 2000);
 
-
     this.uniforms.u_time.value = time;
 
     this.move();
 
     this.prevScroll = this.scroll;
-
   }
 }

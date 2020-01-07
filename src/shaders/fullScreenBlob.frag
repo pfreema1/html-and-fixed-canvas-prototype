@@ -16,6 +16,11 @@ float smoothen(float d1, float d2) {
     return -log(exp(-k * d1) + exp(-k * d2)) / k;
 }
 
+mat2 scale(vec2 _scale){
+    return mat2(_scale.x,0.0,
+                0.0,_scale.y);
+}
+
 void main() {
   vec2 resolution = u_res;  
   vec2 uv = v_uv;
@@ -31,27 +36,56 @@ void main() {
   mouse.y *= resolution.y / resolution.x;
 
   // add bottom white wave 
-  float m = sin(uv.x * 3.0 + u_time) * sin(uv.x * 8.0 + u_time) * 0.05;
-  float y = uv.y - m;
-  float bottomWave = smoothstep(0.08, 0.078, y);
-  bgColor = mix(bgColor, waveColor, bottomWave);
+//   float m = sin(uv.x * 3.0 + u_time) * sin(uv.x * 8.0 + u_time) * 0.05;
+//   float y = uv.y - m;
+//   float bottomWave = smoothstep(0.08, 0.078, y);
+//   bgColor = mix(bgColor, waveColor, bottomWave);
 
   // add top white wave
-  m = sin(uv.x * 3.0 + u_time) * cos(uv.x * 8.5 + u_time) * 0.05;
-  y = uv.y - m;
-  float topWave = smoothstep(0.95, 0.952, y);
-  bgColor = mix(bgColor, waveColor, topWave);
+//   m = sin(uv.x * 3.0 + u_time) * cos(uv.x * 8.5 + u_time) * 0.05;
+//   y = uv.y - m;
+//   float topWave = smoothstep(0.95, 0.952, y);
+//   bgColor = mix(bgColor, waveColor, topWave);
 
-  // draw circle with mouse
+// draw circle with mouse
 //   vec2 cPos = st + mouse;  // not sure why but we have to add st to mouse to get an accurate position
 //   float c = circle(cPos, 0.1, 0.1);
 //   bgColor = mix(bgColor, circleColor, c);
 
+  /*
+  // og
   // metaball
-  // vec2 p0 = cPos;
-  vec2 p0 = vec2(cos(u_time) * 0.3, 0.0);
+  vec2 p0 = vec2(cos(u_time) * 0.3, 0.3);
   vec2 p1 = -mouse;
-  float d = smoothen(distance(st, p0) * 40.0, distance(st, p1) * 40.0);
+  float smoothenVal1 = distance(st, p0) * 40.0;
+  float smoothenVal2 = distance(st, p1) * 40.0;
+  float d = smoothen(smoothenVal1, smoothenVal2);
+  // size the metaballs
+  float foo = smoothstep(2.5, 2.51, d);
+  bgColor = mix(bgColor, circleColor, 1.0 - foo);
+    */
+
+    /*
+  // metaball
+  vec2 p0 = vec2(cos(u_time) * 0.3, 0.3);
+  vec2 p1 = -mouse;
+  float smoothenVal1 = distance(uv, p0) * 40.0;
+  float smoothenVal2 = distance(st, p1) * 40.0;
+  float d = smoothen(smoothenVal1, smoothenVal2);
+  // size the metaballs
+  float foo = smoothstep(2.5, 2.51, d);
+  bgColor = mix(bgColor, circleColor, 1.0 - foo);
+  */
+
+  // metaball
+  vec2 p0 = vec2(0.0);
+  vec2 p1 = -mouse;
+  float heightVal = 0.7;
+  float yMod = uv.y + heightVal - sin(uv.x * 3.0 + u_time) * sin(uv.x * 8.0 + u_time) * 0.5;
+  vec2 modUv = scale(vec2(0.0, yMod)) * uv;
+  float smoothenVal1 = distance(modUv, p0) * 40.0;
+  float smoothenVal2 = distance(st, p1) * 40.0;
+  float d = smoothen(smoothenVal1, smoothenVal2);
   // size the metaballs
   float foo = smoothstep(2.5, 2.51, d);
   bgColor = mix(bgColor, circleColor, 1.0 - foo);
