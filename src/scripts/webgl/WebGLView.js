@@ -367,6 +367,10 @@ export default class WebGLView {
       });
     }
 
+    if (this.fullScreenBlob) {
+      this.fullScreenBlob.update(time);
+    }
+
     if (this.trackball) this.trackball.update();
   }
 

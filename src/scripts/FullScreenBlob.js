@@ -41,6 +41,7 @@ export default class FullScreenBlob {
             x: e.clientX,
             y: e.clientY
         });
+
     }
 
     onMouseEnter() {
@@ -115,11 +116,11 @@ export default class FullScreenBlob {
             y: this.offset.y
         });
 
-        //   TweenMax.to(this.tile.scale, 0.3, {
-        //     x: this.sizes.x - this.scrollDelta,
-        //     y: this.sizes.y - this.scrollDelta,
-        //     z: 1
-        //   });
+        TweenMax.to(this.fullScreenBlob.scale, 0.3, {
+            x: this.sizes.x - this.scrollDelta,
+            y: this.sizes.y - this.scrollDelta,
+            z: 1
+        });
     }
 
     update(time) {

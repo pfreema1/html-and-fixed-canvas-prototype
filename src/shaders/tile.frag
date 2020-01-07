@@ -36,7 +36,7 @@ void main() {
   float sqr = 100. * ((smoothstep(0.0, grd, uv.x) - smoothstep(1.0 - grd, 1.0, uv.x)) * (smoothstep(0.0, grd, uv.y) - smoothstep(1.0 - grd, 1.0, uv.y))) - 10.;
 
   // mouse circle
-  vec2 cpos = st + mouse;
+  vec2 cpos = st + mouse;  // not sure why but we have to add st to mouse to get an accurate position
   float c = circle(cpos, .04 * edgeBevelProgress, 2.0) * 50.; 
 
   // pattern circle
