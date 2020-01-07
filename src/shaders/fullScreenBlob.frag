@@ -43,15 +43,15 @@ void main() {
   bgColor = mix(bgColor, waveColor, topWave);
 
   // draw circle with mouse
-  vec2 cPos = st + mouse;  // not sure why but we have to add st to mouse to get an accurate position
-  float c = circle(cPos, 0.1, 0.1);
-  bgColor = mix(bgColor, circleColor, c);
+//   vec2 cPos = st + mouse;  // not sure why but we have to add st to mouse to get an accurate position
+//   float c = circle(cPos, 0.1, 0.1);
+//   bgColor = mix(bgColor, circleColor, c);
 
   // metaball
   // vec2 p0 = cPos;
   vec2 p0 = vec2(cos(u_time) * 0.3, 0.0);
-  vec2 p1 = vec2(-cos(u_time) * 0.3, 0.0);
-  float d = smoothen(distance(st, p0) * 20.0, distance(st, p1) * 20.0);
+  vec2 p1 = -mouse;
+  float d = smoothen(distance(st, p0) * 40.0, distance(st, p1) * 40.0);
   // size the metaballs
   float foo = smoothstep(2.5, 2.51, d);
   bgColor = mix(bgColor, circleColor, 1.0 - foo);
