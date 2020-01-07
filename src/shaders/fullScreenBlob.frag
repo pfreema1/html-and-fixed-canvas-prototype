@@ -12,7 +12,8 @@ float circle(in vec2 _st, in float _radius, in float blurriness){
 }
 
 float smoothen(float d1, float d2) {
-    float k = 1.5;
+    // k = gloop control
+    float k = 0.35;
     return -log(exp(-k * d1) + exp(-k * d2)) / k;
 }
 
@@ -77,18 +78,64 @@ void main() {
   bgColor = mix(bgColor, circleColor, 1.0 - foo);
   */
 
+  // setup 
+  float waveEq;
+  // mirror the bottom of shader
+  if(uv.y > 0.5) {
+    uv.y = 1.0 - uv.y;  
+    waveEq = sin(uv.x * 1.5 + u_time) * cos(uv.x * 8.5 + u_time);
+  } else {
+    waveEq = sin(uv.x * 3.0 + u_time) * sin(uv.x * 8.0 + u_time);
+  }
+
+  /*****
   // metaball
+  *****/
+  // bottom wave 
   vec2 p0 = vec2(0.0);
-  vec2 p1 = -mouse;
   float heightVal = 0.7;
-  float yMod = uv.y + heightVal - sin(uv.x * 3.0 + u_time) * sin(uv.x * 8.0 + u_time) * 0.5;
+  float yMod = uv.y + heightVal - waveEq * 0.5;
   vec2 modUv = scale(vec2(0.0, yMod)) * uv;
   float smoothenVal1 = distance(modUv, p0) * 40.0;
-  float smoothenVal2 = distance(st, p1) * 40.0;
+  float smoothenVal2 = distance(st, -mouse) * 40.0;
   float d = smoothen(smoothenVal1, smoothenVal2);
   // size the metaballs
   float foo = smoothstep(2.5, 2.51, d);
   bgColor = mix(bgColor, circleColor, 1.0 - foo);
+
+  /*
+  // top and bottom wave are combined here
+  // top wave
+  p0 = vec2(0.0);
+  heightVal = 0.8;
+  yMod = uv.y + heightVal - sin(uv.x * 3.0 + u_time) * cos(uv.x * 8.5 + u_time) * 0.5;
+  modUv = scale(vec2(0.0, yMod)) * uv;
+  smoothenVal1 = distance(modUv, p0) * 40.0;
+  smoothenVal2 = distance(st, p1) * 40.0;
+  d = smoothen(smoothenVal1, smoothenVal2);
+  // size the metaballs
+  foo = smoothstep(2.5, 2.51, d);
+  bgColor = mix(bgColor, circleColor, 1.0 - foo);
+  */
+
+  /*
+  // waves in good position but gooey not quite right on top
+  // top wave
+  p0 = vec2(0.0);
+  heightVal = 0.8;
+  yMod = uv.y + heightVal - sin(uv.x * 3.0 + u_time) * cos(uv.x * 8.5 + u_time) * 0.1;
+  modUv = scale(vec2(0.0, yMod)) * uv;
+  smoothenVal1 = distance(modUv, p0) * 1.5; // height here!
+//   smoothenVal2 = distance(st, p1) * 40.0;
+  d = smoothen(smoothenVal1, smoothenVal2);
+  // size the metaballs
+  foo = smoothstep(2.5, 2.49, d);
+  bgColor = mix(bgColor, circleColor, 1.0 - foo);
+//   bgColor = mix(circleColor, bgColor, foo);
+  */
+
+  
+
 
   gl_FragColor = vec4(bgColor, 1.0);
 }
